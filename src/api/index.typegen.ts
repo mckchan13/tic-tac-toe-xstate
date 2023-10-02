@@ -32,7 +32,7 @@
         eventsCausingServices: {
           
         };
-        matchesStates: "Assert Result" | "Await Game Start" | "Await Player" | "Game Over" | "New Game" | "Round Start";
+        matchesStates: "Assert Result" | "Await Game Start" | "Await Player" | "Game Over" | "New Tic Tac Toe Game" | "Round Start";
         tags: never;
       }
   

@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
-import { Interpreter, State, createMachine, interpret } from "xstate";
-import express, { NextFunction, Request, Response } from "express";
+import { createMachine, interpret } from "xstate";
+import express, { Request, Response } from "express";
+
+const PORT = 3000;
 
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
@@ -13,6 +15,12 @@ export type GameContext = {
 
 export function createNewGameId() {
   return crypto.randomUUID();
+}
+
+export function createNewBoard() {
+  return new Array(3).fill(null).map(() => {
+    return new Array(3).fill("");
+  });
 }
 
 export function createNewGameContext() {
@@ -30,135 +38,157 @@ export function createNewGameContext() {
   return defaultContext;
 }
 
-export const machine = createMachine(
-  {
-    /** @xstate-layout N4IgpgJg5mDOIC5QBUCWBjABMghl5A9mAHQCCA7jqgC6YDiOAtmJgMrU4BO1AxAMIAbVGAB2tdl2qRMAOTDl6TMAG0ADAF1EoAA4FYNVARFaQAD0QBGAEwBmAJzEAHFcfObAFlUB2Rxa82AGhAAT0QbGytiWytbd0cAVnd3ADYLCwBfdKC0fDxsImIAJQIAVxEINg5uHgAFARxgsE5MC2wSzhE1TSQQXX1qQ2Me8wQLD3diL3jVGL8LV1UUoNCEAFoLOwsnLyt3O2Tpu1VVZKt4zOyMbDzCEmKyiolquoamzCtManbOjRM+gyMJhGaTsDjs4RcLg2Zysy0Q602212+0Ox1OjguIBy13wBQoVFoL0anB4rDAAjA6AGRkwAFkcBAVL8ev9qUNQCM7L5iDZ4jZkp4EkcDhY4WsrHYJolUtNkqk9slVDZMdjcLiSKRYLAmrRCnASgJeDICJgAOqoEQiJpdP56AHssyWbyqSbJGw+eJeNJWVSOZJi1ZeCaLKyK5KuKxB5J2c5ZLFXNX5DVanWYPWwA28c2W63MnR2tlAxBeOxeYjxCUVyPxRx2H3+kKWSIWTwWVTxGtJVTWRzKuOqm54lPcNP6w08AAinBw5BtLILgyLCDrkVSBwOZyOtjF1mILe77c7rZcfcuuXVxAYzEwAHkAG5NfhCUTiKpSCpyBRXpndfP9RfDIgmzJMQ0abJ47g7D6EpilY8w8m2oIuDM3ZeFMKoJoOJCfoozCkm+uE-ra-6AoBoxQjykFcjEjhoQK7g7hYIEVj4UYnD4vixmeOJJsQOHfk+whiGwwQiFgEhSHOf72kuLZeC6CT2CWHa+P48Q7kkxBKiWXinO2vihhh568fc5SVJIgkviJYnmZJea9AupEcpYkEKXypYxjWfjhAGYzxMQcThlM7gbDMflGTxtxkJQNCYESj6CEJ4iieJHB2b+DkkQ6wJ7P5jgzF6NiqPsJz8gG-KrkkeyeCcey+lx8bGVFmraiO6aZpZwmsCltlEfOWVLgK-ngmcSQ+tM-LqY24pjKBRy+FytZti4EWJlF363g+JKJVZ3U2RJfXSYWZHrlEiS+L2tbJFMjiwfEWxchE7hnN4FYpMkq1YdFBKEeZ1Q7V1PUHVJmUyWRLYxk4BXva4qlTSsNjOMQpbuJ6ERMR2+yZHGIgEIy8A9AO6rEWDzkIPEpbIxEiTPe2SoHAGqMui2SSgsKqNpJ9F74rFG1PNQJPHWT1gHFpZw9rRYzRg2KzPQ4aFVVBkqo1YXMmaUZn84LAHC7EUPepNMquAGfoBQkrNHDMHino1kV4jFhL1MS2tOY65FnAFMzXf4jg1Qx02rDY8GLDKrlBxKvtq81w66mOAv9aTbscTy0FyhWrhKb5vrltMkaKj7Fh8jbRO8Rt95NC72XFnWWnuuCBy+0cFY7jMTgpCx7qRj6QZRwU-FKJXslnDYURHHRtGue4gTTT6jgBdM1g+JKtaxpkQA */
-    id: "Tic Tac Toe",
+export function createNewTicTacToeMachine() {
+  return createMachine(
+    {
+      /** @xstate-layout N4IgpgJg5mDOIC5QBUCWBjABMghl5A9mAHQCCA7jqgC6YDiOAtmJgMrU4BO1AxAMIAbVGAB2tdl2qRMAOTDl6TMAG0ADAF1EoAA4FYNVARFaQAD0QBGAEwAWAKzELADgCcV6-YDMANieeANCAAnoieNt7EdjZW7qrh3p4A7BaqdgC+aYFo+HjYRMQASgQAriIQbBzcPAAKAjhBYJyYFtjFnCJqmkgguvrUhsbd5ggWYTbEiXaqMRbJTk5x3oEhCAC0Fi4WxE6Jti7eUy6qqt5W6Zkg2di5hCRFpeUSVbX1jZhWmNRtHRomvQZGEzDCwbFzEFyeTxWJzQjZnKzLRDrTbbXY2faHY6nJwZLIYa74fIUKi0F4NTg8VhgARgdD9IyYACyOAgKl+3X+9MGoGGLicW08dh8NlUTjsRwOFkRaysLnGUW8Fim3kV6O8qk8uMu+NwhJIpFgsEatAKcGKAl4MgImAA6qgRCJGp0-noAdyzJZVIlVBMEokxclrKKlsEkYlxnErOrfDDw94XOc8Tk9WRDcbMKbYObeHaHU72TpXVygYhEi5EpFZXYYpNXFYTtLrI4RSk7HYnDYW9DNRcrrq8vq09wM2aLTwACKcHDkZ0cosDEsINxWYiKg4HM5HKwBUMjFcWFupdud1TWPxavs3fIMZiYADyADdGvwhKJxJUpOU5Aob2yuoW+gXIZEE2CJ402EUbF2etZWldwnGITwUhcNwFnrWZJgvHUrxIb9sGwvVFGYSkPyIv8XUAwFgL3flEKgvkYh2RJvE7RsLAiat-TjE5-X5RNtWTAdiDwy9CN-F9hDENgghELAJCkWcALdRcD29bYhXLBN21mQVG07YgNTLZj620qMsME25ChKMoKkkCS32k2TbIUgsennKieUsKCfTFTxNLbflEkhaV1kFYgbCcXxJhsDZplGfjRKE4kaEwMln0ESTxBkuSOBc-83Mo91gXRBw0OSTxVH2E4fBCnwVxYzs5SxdFRQSgikqHE1R14DKHNYbLnPIudCsXFiHAhM5OxMjUDhC9xPFXI5+T5VwUmhcyCSE397yfCleqk-qnPkoalOLaj12ISb+T8VxvFrOC7C2PkoWiKZJlsFUNv7Szktobanh618DoG47FIK5TqIPBNtmmOMY0CuxpU8GFwXDOwgvcA5xW8DILhEAhWXgbpEtuCiIc8hBxQrCaomiVIZsR3dVnsH0D0alCTnsEEvpwshKBS-6PzJs6KesA4DLOM8dlGeMQxWaIwUScNO2guV7CsHmU3uGyAeFoDRe3cYFhBbd1yVeYQsi8KxXZ45DZ7JNNp+-nSTqck9Y8j09zOcLpjuoKO2OGxaucAzwiVbykNlDtNY6o1h0zbMPaK0t5kQmCVWreY-MSEKUgQttYfVAOlUhWPLO2x9GmTxcyxXQyIQODsjmrRtpm2cJOKSKxdi9Gxy-yET2tuMia8hs4FtlL1mJ2bybB3FZ6wQlnrH9OVXHODIgA */
+      predictableActionArguments: true,
+      id: "Tic Tac Toe",
 
-    tsTypes: {} as import("./index.typegen").Typegen0,
+      tsTypes: {} as import("./index.typegen").Typegen0,
 
-    schema: {
-      context: createNewGameContext() as GameContext,
+      context: createNewGameContext(),
+
+      schema: {
+        context: {} as GameContext,
+      },
+
+      initial: "Await Game Start",
+
+      states: {
+        "Await Game Start": {
+          entry: "setupServer",
+          on: {
+            "Client Started New Game": "New Tic Tac Toe Game",
+
+            "Client Sync State": {
+              target: "Await Game Start",
+              internal: true,
+            },
+          },
+        },
+
+        "Round Start": {
+          entry: "promptClientTurn",
+          on: {
+            "Player 1 Turn": "Await Player",
+            "Player 2 turn": "Await Player",
+
+            "Client Sync State": {
+              target: "Round Start",
+              internal: true,
+            },
+          },
+        },
+
+        "Await Player": {
+          entry: "awaitClientSelection",
+          on: {
+            "Selection Made": "Assert Result",
+
+            "Client Sync State": {
+              target: "Await Player",
+              internal: true,
+            },
+          },
+        },
+
+        "Assert Result": {
+          entry: "processGameResult",
+          on: {
+            "No Winner": "Round Start",
+            Winner: "Game Over",
+            Draw: "Game Over",
+
+            "Client Sync State": {
+              target: "Assert Result",
+              internal: true,
+            },
+          },
+        },
+
+        "Game Over": {
+          entry: "promptClientForRestart",
+
+          on: {
+            "Client Started New Game": "New Tic Tac Toe Game",
+
+            "Client Sync State": {
+              target: "Game Over",
+              internal: true,
+            },
+          },
+        },
+
+        "New Tic Tac Toe Game": {
+          entry: "setupNewGame",
+          on: {
+            "Start Game": "Round Start",
+
+            "Client Sync State": {
+              target: "New Tic Tac Toe Game",
+              internal: true,
+            },
+          },
+        },
+      },
     },
-
-    initial: "Await Game Start",
-
-    states: {
-      "Await Game Start": {
-        entry: "setupServer",
-        on: {
-          "Client Started New Game": "New Game",
-
-          "Client Sync State": {
-            target: "Await Game Start",
-            internal: true
-          }
+    {
+      actions: {
+        setupServer: (context, event, meta) => {
+          // setup listener to wait for client to start
         },
-      },
-
-      "Round Start": {
-        entry: "promptClientTurn",
-        on: {
-          "Player 1 Turn": "Await Player",
-          "Player 2 turn": "Await Player",
-
-          "Client Sync State": {
-            target: "Round Start",
-            internal: true
-          }
+        setupNewGame: (context, event, meta) => {
+          // setup context to refresh to a new game context;
         },
-      },
-
-      "Await Player": {
-        entry: "awaitClientSelection",
-        on: {
-          "Selection Made": "Assert Result",
-
-          "Client Sync State": {
-            target: "Await Player",
-            internal: true
-          }
+        promptClientTurn: (context, event, meta) => {
+          // prompt the client to make a turn
         },
-      },
-
-      "Assert Result": {
-        entry: "processGameResult",
-        on: {
-          "No Winner": "Round Start",
-          Winner: "Game Over",
-          Draw: "Game Over",
-
-          "Client Sync State": {
-            target: "Assert Result",
-            internal: true
-          }
+        awaitClientSelection: (context, event, meta) => {
+          // await the clients response;
         },
-      },
-
-      "Game Over": {
-        entry: "promptClientForRestart",
-
-        on: {
-          "Client Started New Game": "New Game",
-
-          "Client Sync State": {
-            target: "Game Over",
-            internal: true
-          }
+        processGameResult: (context, event, meta) => {
+          // assert the winner/draw or if no winner continue game
         },
-      },
-
-      "New Game": {
-        entry: "setupNewGame",
-        on: {
-          "Start Game": "Round Start",
-
-          "Client Sync State": {
-            target: "New Game",
-            internal: true
-          }
+        promptClientForRestart: (context, event, meta) => {
+          // prompt client to restart the game
         },
       },
     }
-  },
-  {
-    actions: {
-      setupServer: (context, event, meta) => {
-        // setup listener to wait for client to start
-      },
-      setupNewGame: (context, event, meta) => {
-        // setup context to refresh to a new game context;
-      },
-      promptClientTurn(context, event, meta) {
-        // prompt the client to make a turn
-      },
-      awaitClientSelection(context, event, meta) {
-        // await the clients response;
-      },
-      processGameResult(context, event, meta) {
-        // assert the winner/draw or if no winner continue game
-      },
-      promptClientForRestart(context, event, meta) {
-        // prompt client to restart the game
-      },
-    },
-  }
-);
+  );
+}
 
 export function main(): void {
-  const machinesMap = new Map<UUID, Interpreter<GameContext>>();
+  const machine = createNewTicTacToeMachine();
+  const interpreter = interpret(machine)
+    .onTransition(() => {
+      // console.log(state);
+    })
+    .start();
+
+  const { initialState } = interpreter.machine;
 
   const app = express();
 
-  app.use("/api/newgame", (req: Request, res: Response, next: NextFunction) => {
-    const gameMachine = interpret(machine).onTransition((state) => {
-      console.log(state.value);
-    }).start();
+  app.use("/api/newgame", async (_: Request, res: Response) => {
+    // do something with the request, such as validate the identity of the
+    interpreter.machine.withContext(createNewGameContext());
+    const { value, context } = interpreter.machine.transition(
+      initialState,
+      "Client Started New Game"
+    );
+    res.json({ value, context });
+  });
 
-    gameMachine.subscribe((state) => {
-      state.context
-    })
+  app.use("/api/syncstate", async (_: Request, res: Response) => {
+    const state = interpreter.send("Client Sync State");
+    const { value, context } = state;
+    res.json({ value, context });
+  });
 
-    console.log(req, res, next);
+  app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
   });
 }
+
+main();
