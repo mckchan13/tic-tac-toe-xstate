@@ -23,11 +23,16 @@ function Grid(props: GridProps): ReactElement<GridProps> {
   };
 
   const toggle = (handler: (e: ClickEvent) => void) => {
-    if (gameIsWon)
-      return () => {
-        console.log("Can't play, the game is won.");
-      };
-    return handler;
+    switch (true) {
+      case gameIsWon:
+        return () => console.log("Can't play, the game is won.");
+
+      case mark === "X" || mark === "O":
+        return () => console.log("Can't play, this grid is already marked.");
+
+      default:
+        return handler;
+    }
   };
 
   return (

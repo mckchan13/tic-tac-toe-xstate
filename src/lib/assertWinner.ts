@@ -52,7 +52,7 @@ export default function assertWinner(
   }
 
   if (turnsPlayed === 9) {
-    return [true, "Draw"];
+    return [true, undefined];
   }
 
   return [false, undefined];

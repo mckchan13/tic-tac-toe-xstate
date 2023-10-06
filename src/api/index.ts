@@ -1,26 +1,38 @@
 import crypto from "node:crypto";
 import { createMachine, interpret, assign } from "xstate";
-import express, { Request, Response } from "express";
-import assertWinner from "../lib/assertWinner";
+import express, { Request, Response, json } from "express";
+import assertWinner from "../lib/assertWinner.ts";
 
 const PORT = 3000;
+
+export function createPlayerSelectionEvent(
+  player: number,
+  row: number,
+  col: number
+) {
+  return {
+    type: "Player Selection",
+    player,
+    row,
+    col,
+  } as const;
+}
 
 export function createNewGameId() {
   return crypto.randomUUID();
 }
 
 export function createNewBoard() {
-  return new Array(3).fill(null).map(() => {
-    return new Array(3).fill("");
-  });
-}
-
-export function createNewGameContext() {
-  const board = [
+  return [
     ["", "", ""],
     ["", "", ""],
     ["", "", ""],
   ];
+}
+
+export function createNewGameContext() {
+  console.log("Creating new game context...");
+  const board = createNewBoard();
 
   return {
     gameId: createNewGameId(),
@@ -34,8 +46,9 @@ export function createNewGameContext() {
 export function createNewTicTacToeMachine() {
   return createMachine(
     {
-      /** @xstate-layout N4IgpgJg5mDOIC5QBUCWBjABMghl5A9mAHQCCA7jqgC6YDiOAtmJgMrU4BO1AxAMIAbVGAB2tdl2qRMAOTDl6TMAG0ADAF1EoAA4FYNVARFaQAD0QBGAEwAWAKzELADgCcV6-YDMANieeANCAAnoieNt7EdjZW7qrh3p4A7BaqdgC+aYFo+HjYRGSUNJgACgI4QWCc-EKi4kEiWBJSappIILr61IbGbeYIFjYuDk6qVsmeqi7eqgnegSEIALQ+VsTeNhsuNqozg6pO6Zkg2di5hCQUVLSl5ZU8NxWcbGACYOhdRi0mHQZGJn0pCyeYhxFI2RLeZweCzzRCLKxbSLhCyJTx2OzrKxJQ5ZDCnfD5UiwWCVWgAJTgAFcBLwAOqoEQiSpfNo-D49UB9RIYxwuJzWKwJJzbJyJWEIMKOPx2Zx8qw7CGJDK4nIEi7E0mYCmwam8GQETD0xnMjTfPS-DlmRBOUXECFbCaJVzhQXixbWRJ21HRRKqTxbax2KzK4543Bqsga7haqk0nj6w0MpmcZQWVo6c3s-7W2x2vkuZyOgb2N02Yj+wYDVFV7x2RIuEMncN5dUk6Pa3U8CkAM1e7xZGc63WzCDrFmIfm2FimLkS4M8VjdaIc3LsLhmCO5qgs3iVRybZ3yDGYmAA8gA3O6CYRiNgcbjSOQKY8qU2szPD3qIAsRbwuAvbOCMSjC44ruE45YpP+VgjPKKLco2YaHiQL5npeVTXrUbD1I0HDNG+g4WiOtYRFYUT8n4ri7nYThgTKxB8gu0R2Ko3K2N43iIaqLbEE+2BIWqijMDwEjRi+A7tB+fxfv0MHjmE9ZODEooQhs4oWDukRjKK4QzE6-I4qG3HnMQZIEJSIgQHekj3GUjyYFY2CUpwIgSWyn6cpY8oQdOQzeDBNieGi4Juii47yruUwbKKLGeFx+I8WZFlWaJvAPJUmAWE5LluVJloAkkwK+MBzh+juATBHCYXEBF9brDYMV+hkRwiAQEBwCYB5qmaQ7SZ5o5YhOYTbjOc6ooulVLPYqiOBsQaTCkIx-vFzYmZcRSoalPVETJ1i1iCZHWDa4x-nMk3RC4XobEBCJzcG+4CTx63XHZlTbVmu0xA42yCokqLCjsNhLs4ILIlEvqeNYfI2CtyGRm25KxtQ70eVaCC+hBNhHW4UyHbWboBROs40QuUQcbMsMRqhF5ve+vX5Yg9arH69Y+DRexBupowTuEQaookYzynOlM8XxXUtkJYAo31aOBsCCKsRCOm+oFYH7MQ00es6riGeLJlJZZ1ncNLDOyYMs1Yguu7+n+MKTYsa6REpC5s1s9ZNc1QA */
+      /** @xstate-layout N4IgpgJg5mDOIC5QBUCWBjABMghl5A9mAHQCCA7jqgC6YDiOAtmJgMrU4BO1AxAMIAbVGAB2tdl2qRMAOTDl6TMAG0ADAF1EoAA4FYNVARFaQAD0QBOAMwBGYhZsWALAA4AbAFYrDiy4A0IACeiFZWqvYePm5uAOwATF5WTk4AvikBaPh42ERksLBg3JgASnAArgK8AOqoIiKFappIILr61IbGzeYIYRbEcS5OqtFWcWExHm4BwQgWbsShzjYuyy4WqhNuaRkY2NmEJKT5hbSlsBW8pQBmAmDo1I0mrQZGJt1xqlb2cRYO3k5uCwxOZOaaIAC0NisHmIThsMVGv3WcRsHlS6RAmT2+FyRwKRTOFx4MgImBqdQaGieehenVA3TcY2INkBANiNiccVBQUQy1h61sLkmQMBqO2mN2uBxh2OBPKlWJpPJ9U4yhsTR0NPary6iCcCNhjg8A28K3ZVjBCA5X1UFhRbm8CQmHih4qxUpyJAYzEwAHkAG6FfhCUTiDjcaRyBTelRU5rPbV0syIRl9awxGIsmKqFxrByWrl2WJxTZc1STDkuN2S-a5GN+wOcYPCMRsQIiLASKSPeNajpvRBjGLEDbl8uRHOo9yWpJOEeeEE2Za2cvVrLS4hR7A16WKZg8CRFGM9zVtfu6q2qDawkthK8xWLOS2or4fBwxFyhGw-IUxNfYz1iGKAgyhECA2HDXgAAUBBwQJCjYMBbnuDoTxaPsdXpFMHWZVR4XcAEYmSJwLEtcFIhHT9fCsDNsxWB9-w9A4gJAsCIMkZtQzbDt2O7ONT1pAcrXhOIFhIkSkmGYYyO-GELEmIUXC5eJVCcNFGNrEhgNA8DD0uMAbjuB5+PQs9MOTK0EhcBZ4jcQZ3G8BEPEtLxiCUtxiJdb8WQcNIMREAgIDgEx3U06kzKTbpUTkn4-mcQFgQ8si4hS+x4VGNwlw8SIPPRHZ10AigqFoes9PCwSLzmUT7SsTwPkzbLLSGOdgQSUYrHcWIcw0jc8ROEp5WocrEyEsJ5jiOy1MZY0Ng-MilOIDwqKFLwlw62IesA+sA0KYbzywhAhlEzl4ncdZOVmi0eQQEs5zGCaaLtJT7M25it1C3cYz28zumcUTfCBeSOp+T4YgLDyFl+BJPFq9YlNe3JtLYsrewioT5Oqj5oiW6Fl25GZwQcWEhQ8mxVM8Y0fj8lIgA */
       predictableActionArguments: true,
+      preserveActionOrder: true,
       id: "Tic Tac Toe",
 
       tsTypes: {} as import("./index.typegen").Typegen0,
@@ -47,8 +60,6 @@ export function createNewTicTacToeMachine() {
         events: {} as
           | { type: "Client Started New Game" }
           | { type: "Start Game" }
-          | { type: "Player 1 Turn" }
-          | { type: "Player 2 Turn" }
           | { type: "Client Sync State" }
           | {
               type: "Player Selection";
@@ -57,7 +68,7 @@ export function createNewTicTacToeMachine() {
               col: number;
             }
           | { type: "Reflect" }
-          | { type: "Winner" }
+          | { type: "Winner"; winner: "Player 1" | "Player 2" }
           | { type: "No Winner" },
       },
 
@@ -70,46 +81,40 @@ export function createNewTicTacToeMachine() {
           },
         },
 
-        "Await Player": {
-          entry: "awaitClientSelection",
-          on: {
-            "Client Sync State": {
-              target: "Await Player",
-              internal: true,
-            },
-            "Player Selection": "Assert Result",
-          },
-        },
-
         "Assert Result": {
-          entry: "processGameResult",
+          entry: "processPlayerSelection",
           on: {
-            Winner: "Game Over",
-
-            "No Winner": [
-              {
-                actions: ["setPlayerTurn"],
-                target: "Round Start",
-                cond: "Round Less Than 9",
-              },
-              {
-                target: "Game Over",
-                cond: "Round Equal 9",
-              },
-            ],
+            Winner: {
+              actions: "setGameResult",
+              target: "Game Over",
+            },
 
             Reflect: {
               target: "Assert Result",
               internal: true,
             },
+
+            "No Winner": [
+              {
+                target: "Round Start",
+                actions: "setPlayerTurn",
+                cond: "Round Less than 9",
+              },
+              {
+                target: "Game Over",
+                actions: "setGameResult",
+                cond: "Round Equal to 9",
+              },
+            ],
           },
         },
 
         "Game Over": {
-          entry: "promptClientForRestart",
-
           on: {
-            "Client Started New Game": "New Tic Tac Toe Game",
+            "Client Started New Game": {
+              actions: "resetContext",
+              target: "New Tic Tac Toe Game",
+            },
 
             "Client Sync State": {
               target: "Game Over",
@@ -119,8 +124,6 @@ export function createNewTicTacToeMachine() {
         },
 
         "New Tic Tac Toe Game": {
-          entry: "resetContext",
-
           on: {
             "Start Game": "Round Start",
           },
@@ -128,9 +131,19 @@ export function createNewTicTacToeMachine() {
 
         "Round Start": {
           entry: "incrementRound",
+
           on: {
-            "Player 1 Turn": "Await Player",
-            "Player 2 Turn": "Await Player",
+            "Player Selection": "Assert Result",
+
+            "Client Sync State": {
+              target: "Round Start",
+              internal: true,
+            },
+
+            Reflect: {
+              target: "Round Start",
+              internal: true,
+            },
           },
         },
       },
@@ -139,36 +152,46 @@ export function createNewTicTacToeMachine() {
       actions: {
         resetContext: assign(createNewGameContext()),
 
-        incrementRound: (context) => {
-          context.round = context.round + 1;
-        },
+        incrementRound: assign({
+          round: ({ round }) => round + 1,
+        }),
 
-        setPlayerTurn: (context) => {
-          // set the proper player for the next round
-          if (context.currentTurn === 1) context.currentTurn = 2;
-          else context.currentTurn = 1;
-        },
+        setPlayerTurn: assign({
+          currentTurn: ({ currentTurn }) => {
+            console.log("setting player turn, previous player:", currentTurn);
+            return currentTurn === 1 ? 2 : 1;
+          },
+        }),
 
-        awaitClientSelection: (context, event, meta) => {
-          // await the clients response;
-        },
+        processPlayerSelection: assign({
+          board: (context, event) => {
+            // assert the winner/draw or if no winner continue game
+            if (event.type === "Player Selection") {
+              const { player, row, col } = event;
+              context.board[row][col] = player === 1 ? "X" : "O";
+            }
+            return context.board;
+          },
+        }),
 
-        processGameResult: (context, event, meta) => {
-          // assert the winner/draw or if no winner continue game
-          if (event.type === "Player Selection") {
-            const { player, row, col } = event;
-            context.board[row][col] = player === 1 ? "X" : "O";
-          }
-
-          // run function to assert a winner
-        },
-        promptClientForRestart: (context, event, meta) => {
-          // prompt client to restart the game
-        },
+        setGameResult: assign({
+          gameResult: (
+            _,
+            event: {
+              type: "Winner" | "No Winner";
+              winner?: "Player 1" | "Player 2";
+            }
+          ) => {
+            if (event.type === "Winner") {
+              return event.winner;
+            }
+            return "Draw";
+          },
+        }),
       },
       guards: {
-        "Round Less Than 9": (context) => context.round < 9,
-        "Round Equal 9": (context) => context.round === 9,
+        "Round Less than 9": (context) => context.round < 9,
+        "Round Equal to 9": (context) => context.round === 9,
       },
     }
   );
@@ -179,73 +202,68 @@ function main(): void {
   const interpreter = interpret(machine)
     .onTransition((state) => {
       console.log("Transitioning to:", state.value);
+      console.log("The new context:", state.context);
     })
     .start();
 
-  const { initialState } = interpreter.machine;
-
   const app = express();
 
-  app.use("/api/newgame", async (_: Request, res: Response) => {
+  app.use(json());
+
+  app.get("/api/newgame", async (_: Request, res: Response) => {
     // starting a new game resets the context on entry into that state
-    const newGameState = interpreter.machine.transition(
-      initialState,
-      "Client Started New Game"
-    );
+    interpreter.send({ type: "Client Started New Game" });
 
     // transition to the Round Start state, the on entry action should increment the round;
-    const roundStartState = interpreter.machine.transition(
-      newGameState,
-      "Start Game"
-    );
+    const roundStartState = interpreter.send({ type: "Start Game" });
 
-    let playerTurnEvent: "Player 1 Turn" | "Player 2 Turn" = "Player 1 Turn";
+    const { value, context } = roundStartState;
 
-    if (roundStartState.context.currentTurn === 1) {
-      playerTurnEvent = "Player 2 Turn";
-    }
-
-    const awaitPlayerState = interpreter.machine.transition(
-      roundStartState,
-      playerTurnEvent
-    );
-
-    const { value, context } = awaitPlayerState;
-
-    // inform the front end to render the Round Start page with the current
-    // context's turn
     res.json({ value, context });
   });
 
-  app.use("/api/playerselection", (req: Request, res: Response) => {
+  app.post("/api/playerselection", (req: Request, res: Response) => {
     const {
       player,
       coordinate: [row, col],
     }: PlayerSelectionData = req.body;
-    const currentPlayer = interpreter.machine.context.currentTurn;
+
+    const {
+      context: { currentTurn: currentPlayer },
+    } = interpreter.send("Reflect");
 
     if (player !== currentPlayer) {
       throw new Error("Player does not match the game state.");
     }
-
-    const previousState = interpreter.send("Reflect");
 
     const playerSelectionEvent = {
       type: "Player Selection",
       player,
       row,
       col,
-    } as const;
+    } as const satisfies PlayerSelectionEvent;
 
-    const assertResultState = interpreter.machine.transition(
-      previousState,
-      playerSelectionEvent as typeof playerSelectionEvent
+    const assertResultState = interpreter.send(playerSelectionEvent);
+
+    const [gameOver, winnerNumberString] = assertWinner(
+      assertResultState.context.board
     );
 
-    const [gameOver, winner] = assertWinner(assertResultState.context.board);
+    if (gameOver && winnerNumberString) {
+      // fire winner event;
+      const winner = winnerNumberString === "X" ? "Player 1" : "Player 2";
+      const gameOverState = interpreter.send({ type: "Winner", winner });
+      const { value, context } = gameOverState;
+      res.json({ value, context });
+    } else {
+      // fire no winner event
+      const roundStartState = interpreter.send("No Winner");
+      const { value, context } = roundStartState;
+      res.json({ value, context });
+    }
   });
 
-  app.use("/api/syncstate", async (_: Request, res: Response) => {
+  app.get("/api/syncstate", async (_: Request, res: Response) => {
     const state = interpreter.send("Client Sync State");
     const { value, context } = state;
     res.json({ value, context });
@@ -269,13 +287,16 @@ export type GameContext = {
 };
 
 export type PlayerSelectionData = {
+  gameId: UUID;
   player: number;
   coordinate: [number, number];
 };
 
-export type PlayerSelectionEvent = {
-  type: "Player Selection";
-  player: number;
-  row: number;
-  col: number;
-};
+export interface GameStateResponse {
+  value: string;
+  context: GameContext;
+}
+
+export type PlayerSelectionEvent = ReturnType<
+  typeof createPlayerSelectionEvent
+>;

@@ -13,26 +13,25 @@ export interface Typegen0 {
     services: never;
   };
   eventsCausingActions: {
-    awaitClientSelection:
+    incrementRound:
       | "Client Sync State"
-      | "Player 1 Turn"
-      | "Player 2 Turn";
-    incrementRound: "No Winner" | "Start Game";
-    processGameResult: "Player Selection" | "Reflect";
-    promptClientForRestart: "Client Sync State" | "No Winner" | "Winner";
+      | "No Winner"
+      | "Reflect"
+      | "Start Game";
+    processPlayerSelection: "Player Selection" | "Reflect";
     resetContext: "Client Started New Game";
+    setGameResult: "No Winner" | "Winner";
     setPlayerTurn: "No Winner";
   };
   eventsCausingDelays: {};
   eventsCausingGuards: {
-    "Round Equal 9": "No Winner";
-    "Round Less Than 9": "No Winner";
+    "Round Equal to 9": "No Winner";
+    "Round Less than 9": "No Winner";
   };
   eventsCausingServices: {};
   matchesStates:
     | "Assert Result"
     | "Await Game Start"
-    | "Await Player"
     | "Game Over"
     | "New Tic Tac Toe Game"
     | "Round Start";
