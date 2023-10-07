@@ -8,9 +8,9 @@ updated game context as the game changes states in response to user moves.
 To start the game:
 
 ```typescript
-// starts up the front end
+// starts up the front end on port 5173
 npm run dev
 
-// starts up the server that exposes api endpoints to manipulate the state machine
+// starts up the server on port 3000 that exposes api endpoints to manipulate the state machine
 npm run machine
 ```
