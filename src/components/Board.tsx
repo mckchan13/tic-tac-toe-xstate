@@ -4,12 +4,23 @@ import GameStatus from "./GameStatus";
 import BoardContext from "../context/BoardContext";
 import { GameContext } from "../api";
 import { PlayerSelectionData } from "../api";
+import useNavigation from "../hooks/useNavigation";
 
 function Board() {
   const { boardContext, setBoardContext } = useContext(BoardContext);
   const { board, gameResult, currentTurn } = boardContext;
+  const { navigate } = useNavigation();
 
-  const handleResetGame = () => {};
+  const handleResetGame = async () => {
+    // send signal to backend to start new game
+    const response = await fetch("http://localhost:3000/api/newgame");
+    const { context } = (await response.json()) as {
+      value: string;
+      context: GameContext;
+    };
+    setBoardContext(context);
+    if (navigate) navigate("/board");
+  };
 
   const handleMarkGrid = async (row: number, col: number) => {
     const response = await fetch(
