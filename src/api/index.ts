@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { createMachine, interpret, assign } from "xstate";
 import express, { Request, Response, json } from "express";
+import cors from "cors";
 import assertWinner from "../lib/assertWinner.ts";
 
 const PORT = 3000;
@@ -48,7 +49,9 @@ export function createNewTicTacToeMachine() {
     {
       /** @xstate-layout N4IgpgJg5mDOIC5QBUCWBjABMghl5A9mAHQCCA7jqgC6YDiOAtmJgMrU4BO1AxAMIAbVGAB2tdl2qRMAOTDl6TMAG0ADAF1EoAA4FYNVARFaQAD0QBOAMwBGYhZsWALAA4AbAFYrDiy4A0IACeiFZWqvYePm5uAOwATF5WTk4AvikBaPh42ERksLBg3JgASnAArgK8AOqoIiKFappIILr61IbGzeYIYRbEcS5OqtFWcWExHm4BwQgWbsShzjYuyy4WqhNuaRkY2NmEJKT5hbSlsBW8pQBmAmDo1I0mrQZGJt1xqlb2cRYO3k5uCwxOZOaaIAC0NisHmIThsMVGv3WcRsHlS6RAmT2+FyRwKRTOFx4MgImBqdQaGieehenVA3TcY2INkBANiNiccVBQUQy1h61sLkmQMBqO2mN2uBxh2OBPKlWJpPJ9U4yhsTR0NPary6iCcCNhjg8A28K3ZVjBCA5X1UFhRbm8CQmHih4qxUpyJAYzEwAHkAG6FfhCUTiDjcaRyBTelRU5rPbV0syIRl9awxGIsmKqFxrByWrl2WJxTZc1STDkuN2S-a5GN+wOcYPCMRsQIiLASKSPeNajpvRBjGLEDbl8uRHOo9yWpJOEeeEE2Za2cvVrLS4hR7A16WKZg8CRFGM9zVtfu6q2qDawkthK8xWLOS2or4fBwxFyhGw-IUxNfYz1iGKAgyhECA2HDXgAAUBBwQJCjYMBbnuDoTxaPsdXpFMHWZVR4XcAEYmSJwLEtcFIhHT9fCsDNsxWB9-w9A4gJAsCIMkZtQzbDt2O7ONT1pAcrXhOIFhIkSkmGYYyO-GELEmIUXC5eJVCcNFGNrEhgNA8DD0uMAbjuB5+PQs9MOTK0EhcBZ4jcQZ3G8BEPEtLxiCUtxiJdb8WQcNIMREAgIDgEx3U06kzKTbpUTkn4-mcQFgQ8si4hS+x4VGNwlw8SIPPRHZ10AigqFoes9PCwSLzmUT7SsTwPkzbLLSGOdgQSUYrHcWIcw0jc8ROEp5WocrEyEsJ5jiOy1MZY0Ng-MilOIDwqKFLwlw62IesA+sA0KYbzywhAhlEzl4ncdZOVmi0eQQEs5zGCaaLtJT7M25it1C3cYz28zumcUTfCBeSOp+T4YgLDyFl+BJPFq9YlNe3JtLYsrewioT5Oqj5oiW6Fl25GZwQcWEhQ8mxVM8Y0fj8lIgA */
       predictableActionArguments: true,
+
       preserveActionOrder: true,
+
       id: "Tic Tac Toe",
 
       tsTypes: {} as import("./index.typegen").Typegen0,
@@ -208,6 +211,8 @@ function main(): void {
 
   const app = express();
 
+  app.use(cors());
+  
   app.use(json());
 
   app.get("/api/newgame", async (_: Request, res: Response) => {
@@ -279,7 +284,7 @@ main();
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 export type GameContext = {
-  gameId: UUID;
+  gameId: UUID | undefined;
   board: string[][];
   gameResult: "Player 1" | "Player 2" | "Draw" | undefined;
   currentTurn: number;

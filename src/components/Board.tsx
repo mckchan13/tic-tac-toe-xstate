@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import Grid from "./Grid";
 import GameStatus from "./GameStatus";
+import BoardContext from "../context/BoardContext";
 
 function Board() {
+  const { boardContext, setBoardContext } = useContext(BoardContext);
   const defaultBoard = createDefaultBoard();
   const [boardData, setBoardData] = useState<typeof defaultBoard>(defaultBoard);
   const [p1Turn, setP1Turn] = useState<boolean>(true);
@@ -125,7 +127,7 @@ function assertWinner(board: string[][]): [boolean, string | undefined] {
   }
 
   if (turnsPlayed === 9) {
-    return [true, "Draw"]
+    return [true, "Draw"];
   }
 
   return [false, undefined];
