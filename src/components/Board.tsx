@@ -2,8 +2,8 @@ import { useContext } from "react";
 import Grid from "./Grid";
 import GameStatus from "./GameStatus";
 import BoardContext from "../context/BoardContext";
-import { GameContext } from "../api";
-import { PlayerSelectionData } from "../api";
+import { GameContext } from "../api/statemachine";
+import { PlayerSelectionData } from "../api/statemachine";
 import useNavigation from "../hooks/useNavigation";
 
 function Board() {
@@ -13,7 +13,7 @@ function Board() {
 
   const handleResetGame = async () => {
     // send signal to backend to start new game
-    const response = await fetch("http://localhost:3000/api/newgame");
+    const response = await fetch("http://localhost:3000/api/resetgame");
     const { context } = (await response.json()) as {
       value: string;
       context: GameContext;
