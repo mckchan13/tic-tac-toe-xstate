@@ -3,7 +3,7 @@ import Loading from "./Loading";
 import useLoading from "../hooks/useLoading";
 import useNavigation from "../hooks/useNavigation";
 import BoardContext from "../context/BoardContext";
-import { GameContext } from "../api";
+import { GameContext } from "../api/statemachine";
 
 function StartGameButton() {
   const { navigate } = useNavigation();

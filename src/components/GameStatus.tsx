@@ -2,18 +2,22 @@ import { PropsWithChildren, ReactElement } from "react";
 
 export type GameStatusProps = {
   currentTurn: number;
-  gameResult: "Player 1" | "Player 2" | "Draw" | undefined
+  gameResult: "Player 1" | "Player 2" | "Draw" | undefined;
   handleResetGame: () => void;
 };
 
 function GameStatus(props: PropsWithChildren<GameStatusProps>): ReactElement {
   const { currentTurn, gameResult, handleResetGame } = props;
 
-  let message = currentTurn === 1 ? "Current Turn: Player 1" : "Current Turn: Player 2";
+  let message =
+    currentTurn === 1 ? "Current Turn: Player 1" : "Current Turn: Player 2";
 
   if (gameResult) {
     const winner = gameResult;
-    message = `Game over: the winner is ${winner}`;
+    message =
+      winner === "Draw"
+        ? `Game over: The game is a draw.`
+        : `Game over: The winner is ${winner}.`;
   }
 
   return (
