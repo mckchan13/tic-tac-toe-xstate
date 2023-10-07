@@ -4,27 +4,24 @@ export type GridProps = {
   row: number;
   col: number;
   mark: string;
-  p1Turn: boolean;
-  gameIsWon: boolean;
-  handleBoardData: (row: number, col: number, mark: string) => void;
-  handleP1Turn: () => void;
+  currentTurn: number;
+  gameResult: "Player 1" | "Player 2" | "Draw" | undefined;
+  handleMarkGrid: (row: number, col: number, mark: string) => void;
 };
 
 export type ClickEvent = React.MouseEvent;
 
 function Grid(props: GridProps): ReactElement<GridProps> {
-  const { row, col, mark, p1Turn, gameIsWon, handleBoardData, handleP1Turn } =
-    props;
+  const { row, col, mark, currentTurn, gameResult, handleMarkGrid } = props;
 
   const handleClick = () => {
-    console.log(`Clicked row: ${row}, col: ${col}`);
-    handleP1Turn();
-    handleBoardData(row, col, p1Turn ? "X" : "O");
+    console.log(`Player ${currentTurn} clicked row: ${row}, col: ${col}`);
+    handleMarkGrid(row, col, currentTurn === 1 ? "X" : "O");
   };
 
   const toggle = (handler: (e: ClickEvent) => void) => {
     switch (true) {
-      case gameIsWon:
+      case gameResult !== undefined:
         return () => console.log("Can't play, the game is won.");
 
       case mark === "X" || mark === "O":

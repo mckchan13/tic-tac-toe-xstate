@@ -24,13 +24,13 @@ function createInitialBoardContext(): TServerGameContext {
 }
 
 export interface BoardContextInterface {
-  boardContext: TServerGameContext | undefined;
-  setBoardContext: GameContextStateDispatcher | undefined;
+  boardContext: TServerGameContext;
+  setBoardContext: GameContextStateDispatcher;
 }
 
 const BoardContext = createContext<BoardContextInterface>({
-  boardContext: undefined,
-  setBoardContext: undefined,
+  boardContext: createInitialBoardContext(),
+  setBoardContext: () => null,
 });
 
 function BoardProvider({ children }: { children: ReactNode }) {
