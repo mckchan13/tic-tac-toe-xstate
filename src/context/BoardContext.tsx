@@ -1,8 +1,8 @@
 import React, { createContext, ReactNode, useState } from "react";
-import { GameContext as TServerGameContext } from "../api";
+import { GameContext } from "../api/statemachine";
 
 export type GameContextStateDispatcher = React.Dispatch<
-  React.SetStateAction<TServerGameContext>
+  React.SetStateAction<GameContext>
 >;
 
 function createBlankBoard() {
@@ -13,18 +13,18 @@ function createBlankBoard() {
   ];
 }
 
-function createInitialBoardContext(): TServerGameContext {
+function createInitialBoardContext(): GameContext {
   return {
     gameId: undefined,
     board: createBlankBoard(),
     gameResult: undefined,
     currentTurn: 1,
     round: 0,
-  } satisfies TServerGameContext;
+  } satisfies GameContext;
 }
 
 export interface BoardContextInterface {
-  boardContext: TServerGameContext;
+  boardContext: GameContext;
   setBoardContext: GameContextStateDispatcher;
 }
 
@@ -34,7 +34,7 @@ const BoardContext = createContext<BoardContextInterface>({
 });
 
 function BoardProvider({ children }: { children: ReactNode }) {
-  const [boardContext, setBoardContext] = useState<TServerGameContext>(
+  const [boardContext, setBoardContext] = useState<GameContext>(
     createInitialBoardContext()
   );
 

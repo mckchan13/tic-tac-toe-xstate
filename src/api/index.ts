@@ -15,7 +15,7 @@ function main(): void {
   const interpreter = interpret(machine)
     .onTransition((state) => {
       console.log("Transitioning to:", state.value);
-      console.log("The new context:", state.context);
+      console.log("The updated context:", state.context);
     })
     .start();
 
@@ -25,7 +25,7 @@ function main(): void {
 
   app.use(json());
 
-  app.get("/api/newgame", async (_: Request, res: Response) => {
+  app.get("/api/newgame", (_: Request, res: Response) => {
     // starting a new game resets the context on entry into that state
     interpreter.send({ type: "Client Started New Game" });
 
@@ -64,21 +64,25 @@ function main(): void {
       assertResultState.context.board
     );
 
-    if (gameOver && winnerNumberString) {
-      // fire winner event;
-      const winner = winnerNumberString === "X" ? "Player 1" : "Player 2";
-      const gameOverState = interpreter.send({ type: "Winner", winner });
-      const { value, context } = gameOverState;
-      res.json({ value, context });
-    } else {
-      // fire no winner event
-      const roundStartState = interpreter.send("No Winner");
-      const { value, context } = roundStartState;
-      res.json({ value, context });
+    switch (true) {
+      case gameOver && winnerNumberString !== undefined: {
+        // fire winner event;
+        const winner = winnerNumberString === "X" ? "Player 1" : "Player 2";
+        const gameOverState = interpreter.send({ type: "Winner", winner });
+        const { value, context } = gameOverState;
+        res.json({ value, context });
+        return;
+      }
+      default: {
+        // fire no winner event
+        const roundStartState = interpreter.send("No Winner");
+        const { value, context } = roundStartState;
+        res.json({ value, context });
+      }
     }
   });
 
-  app.get("/api/syncstate", async (_: Request, res: Response) => {
+  app.get("/api/syncstate", (_: Request, res: Response) => {
     const state = interpreter.send("Client Sync State");
     const { value, context } = state;
     res.json({ value, context });

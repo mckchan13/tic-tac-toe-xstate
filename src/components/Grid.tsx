@@ -25,7 +25,7 @@ function Grid(props: GridProps): ReactElement<GridProps> {
         return () => console.log("Can't play, the game is won.");
 
       case mark === "X" || mark === "O":
-        return () => console.log("Can't play, this grid is already marked.");
+        return () => console.error("Can't play, this grid is already marked.");
 
       default:
         return handler;

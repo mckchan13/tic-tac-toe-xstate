@@ -2,7 +2,7 @@ import { useContext } from "react";
 import Grid from "./Grid";
 import GameStatus from "./GameStatus";
 import BoardContext from "../context/BoardContext";
-import { GameContext } from "../api/statemachine";
+import { GameContext, GameStateResponse } from "../api/statemachine";
 import { PlayerSelectionData } from "../api/statemachine";
 import useNavigation from "../hooks/useNavigation";
 
@@ -18,6 +18,7 @@ function Board() {
       value: string;
       context: GameContext;
     };
+    console.log(context.board);
     setBoardContext(context);
     if (navigate) navigate("/board");
   };
@@ -31,10 +32,7 @@ function Board() {
       })
     );
 
-    const { context } = (await response.json()) as {
-      value: string;
-      context: GameContext;
-    };
+    const { context }: GameStateResponse = await response.json();
 
     setBoardContext(context);
   };

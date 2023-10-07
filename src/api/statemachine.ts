@@ -149,7 +149,13 @@ export function createNewTicTacToeMachine() {
     },
     {
       actions: {
-        resetContext: assign(createNewGameContext()),
+        resetContext: assign({
+          gameId: () => createNewGameId(),
+          currentTurn: () => 1,
+          board: () => createNewBoard(),
+          gameResult: () => undefined,
+          round: () => 0,
+        }),
 
         incrementRound: assign({
           round: ({ round }) => round + 1,
